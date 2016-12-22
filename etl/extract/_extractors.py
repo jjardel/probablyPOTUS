@@ -1,8 +1,8 @@
 from bs4 import BeautifulSoup
 from requests import get
 
-from common.util import get_path
-from common.lw import get_logger, get_root_logger
+from lib.utils.util import get_path
+from lib.utils.lw import get_logger, get_root_logger
 from zipfile import ZipFile
 from io import BytesIO
 from pandas.io.json import json_normalize
