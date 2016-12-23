@@ -5,7 +5,7 @@ from lib.utils.util import get_path
 from lib.utils.lw import get_logger, get_root_logger
 from zipfile import ZipFile
 from io import BytesIO
-from pandas.io.json import json_normalize
+from pandas import DataFrame
 
 import tweepy, json, re, os
 
@@ -24,7 +24,7 @@ class EventExtractor(object):
         self.base = base
         self.file_links = []
 
-        self.data_path = get_path(__file__) + '/../data/{0}'
+        self.data_path = get_path(__file__) + '/../../data/{0}'
         self.logger = get_logger(__name__)
 
     def _get_files(self):
@@ -76,7 +76,7 @@ class TweetExtractor(object):
         # initialize variables
         self.user = 'realdonaldtrump'
 
-        self.loc = get_path(__file__) + '/../{0}'
+        self.loc = get_path(__file__) + '/../../{0}'
         self.logger = get_logger(__name__)
 
         # authenticate to the API
@@ -110,7 +110,7 @@ class TweetExtractor(object):
         file_base = self.loc.format('data/tweets.csv')
 
         self.logger.info('Writing Trump tweets to {0}'.format(file_base))
-        df.to_csv(file_base)
+        df.to_csv(file_base, index=False)
 
     def extract(self, batch_size=200, num_tweets=2000):
 
@@ -125,19 +125,14 @@ class TweetExtractor(object):
             page += 1
             cursor += batch_size
 
-        # pick off the schema from the first tweet
-        df = json_normalize(res[0]._json)
-        df.drop(0, inplace=True)
-
-        for tweet in res:
-            df = df.append(json_normalize(tweet._json))
+        df = DataFrame([x._json for x in res])
 
         # write tweets to disk
         self._export_to_csv(df)
 
 if __name__ == '__main__':
 
-    lg = get_root_logger(filename='log.log')
+    lg = get_root_logger()
 
     #ex = EventExtractor()
     #ex.extract()
