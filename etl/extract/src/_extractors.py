@@ -6,6 +6,7 @@ from lib.utils.lw import get_logger, get_root_logger
 from zipfile import ZipFile
 from io import BytesIO
 from pandas import DataFrame
+from pandas.io.json import json_normalize
 
 import tweepy, json, re, os
 
@@ -71,13 +72,15 @@ class EventExtractor(object):
 
 class TweetExtractor(object):
 
-    def __init__(self):
+    def __init__(self, user):
 
         # initialize variables
-        self.user = 'realdonaldtrump'
+        self.user = user
 
         self.loc = get_path(__file__) + '/../../{0}'
         self.logger = get_logger(__name__)
+
+        self.logger.info('Extracting tweets for {0}'.format(user))
 
         # authenticate to the API
         self._initialize_api()
@@ -107,16 +110,16 @@ class TweetExtractor(object):
 
     def _export_to_csv(self, df):
 
-        file_base = self.loc.format('data/tweets.csv')
+        file_base = self.loc.format('data/tweets_{0}.csv'.format(self.user))
 
-        self.logger.info('Writing Trump tweets to {0}'.format(file_base))
+        self.logger.info('Writing tweets to {0}'.format(file_base))
         df.to_csv(file_base, index=False)
 
     def extract(self, batch_size=200, num_tweets=2000):
 
         res = []
 
-        self.logger.info('Collecting the last {0} Trump tweets'.format(num_tweets))
+        self.logger.info('Collecting the last {0} tweets'.format(num_tweets))
         cursor = 0
         page = 1
 
@@ -125,7 +128,19 @@ class TweetExtractor(object):
             page += 1
             cursor += batch_size
 
-        df = DataFrame([x._json for x in res])
+        # pick off the schema from the first tweet
+        df = json_normalize(res[0]._json)
+        df.drop(0, inplace=True)
+
+        for tweet in res:
+            df = df.append(json_normalize(tweet._json))
+
+        # clean up column names a bit
+        df.rename(columns=lambda x: x.replace('retweeted_status', 'rs').\
+                  replace('quoted_status', 'qs').\
+                  replace('.', '_'),
+                  inplace=True
+        )
 
         # write tweets to disk
         self._export_to_csv(df)

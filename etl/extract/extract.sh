@@ -7,6 +7,6 @@ export WORKING_DIR=/Users/jjardel/dev/distractingdonald # Todo: initialize somep
 cd $WORKING_DIR/etl/extract
 
 
-python extract_tweets.py
-python extract_events.py
+python extract_tweets.py --user realdonaldtrump
+python extract_tweets.py --user AP
 
