@@ -8,3 +8,4 @@ export WORKING_DIR=/Users/jjardel/dev/distractingdonald # Todo: initialize somep
 
 extract/extract.sh
 load/load.sh
+transform/transform.sh
