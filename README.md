@@ -5,12 +5,11 @@ The President-Elect loves to tweet--perhaps (ok, definitely) a little too much. 
   his tweets are strategically timed to manipulate news cycles that are unfavorable to him.
   Let's test this hypothesis with data.
 
-The [Phoenix Data Project](http://phoenixdata.org/) publishes data from thousands of Political Events each day,
-coded to a uniform standard.  Donald Trump's twitter feed publishes dozens of incoherent ramblings each day.  Let's
- cross-correlate the two and explore the relationship between his more incendiary tweets and negative news stories.
+We can compare Trump's Twitter feed to the feeds of major news outlets (AP, Reuters, etc) and see what's happening in
+  the world while PEOTUS goes on twitter rampages.  Are major events happening that he's trying to distract us from?
 
 ## Todo:
- - Create a pipeline to digest Phoenix data and tweets
+ - Create a pipeline to digest tweets
  - Identify incendiary tweets (# of retweets?  retweets by prominent news outlets?)
  - What world events are happening during tweetstorms?  Would they generate good or bad coverage for PEOTUS?
  - Automate and deploy!
