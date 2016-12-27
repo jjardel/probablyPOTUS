@@ -108,6 +108,16 @@ class TweetExtractor(object):
 
         self.api = tweepy.API(auth)
 
+    def _get_extraction_fields(self):
+
+        try:
+            with open(self.loc.format('extract/extract_fields.json')) as fp:
+                fields_dict = json.load(fp)
+        except FileNotFoundError:
+            raise FileNotFoundError('User must supply an extract_fields.json file to identify which fields to extract from Tweets')
+
+        return fields_dict.get('fields')
+
     def _export_to_csv(self, df):
 
         file_base = self.loc.format('data/tweets_{0}.csv'.format(self.user))
@@ -128,21 +138,19 @@ class TweetExtractor(object):
             page += 1
             cursor += batch_size
 
-        # pick off the schema from the first tweet
-        df = json_normalize(res[0]._json)
-        df.drop(0, inplace=True)
+
+        fields = self._get_extraction_fields()
+        df = DataFrame(columns=fields)
 
         for tweet in res:
-            df = df.append(json_normalize(tweet._json))
+            tmp_df = json_normalize(tweet._json)
+            df = df.append(tmp_df.ix[:, fields])
 
         # clean up column names a bit
-        df.rename(columns=lambda x: x.replace('retweeted_status', 'rs').\
-                  replace('quoted_status', 'qs').\
-                  replace('.', '_'),
-                  inplace=True
-        )
+        df.rename(columns=lambda x: x.replace('.', '_'), inplace=True)
 
         # write tweets to disk
+
         self._export_to_csv(df)
 
 if __name__ == '__main__':

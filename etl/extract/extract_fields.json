@@ -1,0 +1,17 @@
+{
+  "fields": [
+    "created_at",
+    "favorite_count",
+    "id_str",
+    "quoted_status_id_str",
+    "quoted_status.text",
+    "retweet_count",
+    "source",
+    "text",
+    "user.name",
+    "user.followers_count",
+    "user.id_str",
+    "user.screen_name",
+    "user.statuses_count"
+  ]
+}
