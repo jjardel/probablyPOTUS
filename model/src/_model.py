@@ -1,5 +1,6 @@
 # python STL
 import re
+import os
 import numpy as np
 from datetime import datetime
 
@@ -20,7 +21,9 @@ from model.src import DFColumnExtractor, twitter_tokenizer
 from lib.utils.lw import get_logger
 from lib.utils.db_conn import DBConn
 
-CONFIG = '/Users/jjardel/dev/distractingdonald/config/db_creds_local.json'
+WORKING_DIR = os.getenv('WORKING_DIR')
+
+CONFIG = '{0}/config/db_creds_local.json'.format(WORKING_DIR)
 
 TEXT_FEATURES = 'text'
 
