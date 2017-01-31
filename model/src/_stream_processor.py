@@ -82,6 +82,7 @@ class Listener(tweepy.StreamListener):
             if prob_potus >= 0.8:
                 processor.retweet()
         else:
+            return True
 
 
     def on_error(self, status_code):
