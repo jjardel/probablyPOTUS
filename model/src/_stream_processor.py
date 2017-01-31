@@ -8,6 +8,8 @@ import numpy as np
 from lib.utils.lw import get_logger
 from lib.utils.util import get_path
 
+# utility functions for transformations on streamed tweets
+
 
 def count_uppercase_substrings(s):
     res = re.match('([A-Z][\w-]*(\s+[A-Z][\w-]*)+)', s)
@@ -68,26 +70,41 @@ class Listener(tweepy.StreamListener):
 
     def on_status(self, status):
 
-        processor = TweetProcessor(status._json)
-        processor.transform()
+        if status.user.id_str == '25073877':  # trump's id
+            processor = TweetProcessor(status._json)
+            processor.transform()
+            prob_potus = processor.predict()
+
+            if prob_potus >= 0.8:
+                processor.retweet()
+        else:
+            return True
+
+    def on_error(self, status_code):
+        if status_code == 420:
+            print('whoops, we got rate limited')  # Todo: get this into the logger
+            return False
 
 
 class TweetProcessor(object):
 
-    def __init__(self, model_pkl, auth, tweet):
+    def __init__(self, tweet):
 
         self.logger = get_logger(__name__)
         self.loc = get_path(__file__) + '/{0}'
-        self.model = self._load_model(model_pkl)
-        self.api = tweepy.API(auth)
+        self.model = self._load_model()
+        self.api = tweepy.API(AuthHandler().auth)
         self.tweet = tweet
         self.tweet_df = None
 
-    def _load_model(self, filepath):
+    def _load_model(self):
 
-        self.logger.info('Loading serialized model from {0}'.format(filepath))
+        self.logger.info('Loading serialized model')
 
-        return joblib.load(filepath)
+        # hardcoded path
+        path = self.loc.format('../saved_models/model.pkl')
+
+        return joblib.load(path)
 
     def transform(self):
 
@@ -101,10 +118,13 @@ class TweetProcessor(object):
         tweet_df = tweet_df.loc[:, fields_subset]
 
         # perform transformations on DF to get into same form as DB table
-        tweet_df.loc[:, 'retweets_to_faves'] = tweet_df.loc[:, 'retweet_count'] / tweet_df.loc[:, 'favorite_count']
+        tweet_df.loc[:, 'retweets_to_faves'] = 0
+
+        # this feature isn't scaled properly since we're pulling from the stream
+        #tweet_df.loc[:, 'retweets_to_faves'] = tweet_df.loc[:, 'retweet_count'] / tweet_df.loc[:, 'favorite_count']
         tweet_df.loc[:, 'num_characters'] = tweet_df.text.apply(lambda x: len(x))
         tweet_df.loc[:, 'num_exclamation_points'] = tweet_df.text.apply(lambda x: x.count('!'))
-        tweet_df.loc[:, 'is_tweetstorm'] = np.nan
+        tweet_df.loc[:, 'is_tweetstorm'] = 0
         tweet_df.loc[:, 'is_trump_retweet'] = tweet_df.text.apply(lambda x: is_retweet(x))
         tweet_df.loc[:, 'num_uppercase_strings'] = tweet_df.text.apply(lambda x: count_uppercase_substrings(x))
         tweet_df.loc[:, 'source'] = tweet_df.source.apply(lambda x: normalize_tweet_sources(x))
@@ -124,13 +144,20 @@ class TweetProcessor(object):
 
         self.tweet_df = tweet_df
 
+    def predict(self):
 
-        print("test")
+        return self.model.gs_.predict_proba(self.tweet_df)[0][1]
 
     def retweet(self):
 
-        # call model.predict(), if prob > threshold
-        pass
+        # retweet with boilerplate
+        prob = self.predict()
+
+        text = 'There is a {:.0%} chance that this tweet was written by POTUS https://twitter.com/realDonaldTrump/status/{}'.\
+            format(prob, self.tweet_df.id_str.loc[0])
+
+        self.api.update_status(text)
+        self.logger.info('Retweeted tweet ID {0}'.format(self.tweet_df.id_str.loc[0]))
 
 
 if __name__ == '__main__':
@@ -141,11 +168,10 @@ if __name__ == '__main__':
     tweet = api.get_status('741286391200505857')
 
     p = TweetProcessor(
-        model_pkl='/Users/jjardel/dev/probablyPOTUS/model/saved_models/model_20170129_140655.pkl',
-        auth=auth,
         tweet=tweet._json
     )
     p.transform()
+    p.retweet()
 
     print('test')
 

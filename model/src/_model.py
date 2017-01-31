@@ -28,9 +28,9 @@ CONFIG = '{0}/config/db_creds_local.json'.format(WORKING_DIR)
 TEXT_FEATURES = 'text'
 
 NON_TEXT_FEATURES = [
-    'favorites',
-    'retweets',
-    'retweets_to_faves',
+    #'favorites',
+    #'retweets',
+    #'retweets_to_faves',
     'num_exclamation_points',
     'num_uppercase_strings',
     'is_trump_retweet'
