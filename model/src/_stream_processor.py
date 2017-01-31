@@ -12,9 +12,13 @@ from lib.utils.util import get_path
 
 
 def count_uppercase_substrings(s):
-    res = re.match('([A-Z][\w-]*(\s+[A-Z][\w-]*)+)', s)
-    if res:
-        return len(res)
+
+    magic_regex = r"(\s+[A-Z][\w-]*)+"
+    res = re.finditer(magic_regex, s)
+    matches = [r for r in res]
+
+    if matches:
+        return len(matches)
     else:
         return 0
 
@@ -78,7 +82,7 @@ class Listener(tweepy.StreamListener):
             if prob_potus >= 0.8:
                 processor.retweet()
         else:
-            return True
+
 
     def on_error(self, status_code):
         if status_code == 420:
