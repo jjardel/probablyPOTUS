@@ -35,7 +35,7 @@ c2 AS(
         array_length(string_to_array(text, '!'), 1) - 1 AS num_exclamation_points,
         length(text) AS num_characters,
         array_length(regexp_split_to_array(text, '([A-Z][\w-]*(\s+[A-Z][\w-]*)+)'), 1) - 1 AS num_uppercase_strings,
-        CASE WHEN text LIKE '"@' OR text LIKE 'RT%' THEN 1 ELSE 0 END AS is_trump_retweet,   -- he often RTs lots of tweets in a row, and starts by copying the text of the tweet
+        CASE WHEN text LIKE '"@%' OR text LIKE 'RT%' THEN 1 ELSE 0 END AS is_trump_retweet,   -- he often RTs lots of tweets in a row, and starts by copying the text of the tweet
         LAG(created_at, 1) OVER w AS timestamp_last_tweet,
         LEAD(created_at, 1) OVER w AS timestamp_next_tweet
     FROM c1
