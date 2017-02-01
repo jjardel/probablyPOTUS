@@ -1,18 +1,19 @@
 # python STL
 import re
 import os
-import numpy as np
 from datetime import datetime
 
-# sklearn modules
+# third party modules
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve
 from sklearn.externals import joblib
+import numpy as np
+import matplotlib.pyplot as plt
 
 # model utils
 from model.src import DFColumnExtractor, twitter_tokenizer
@@ -143,6 +144,21 @@ class BaseModel(object):
         y_preds = self.model_.predict(X_test)
 
         self.logger.info('test set accuracy is {0}'.format(accuracy_score(y_test, y_preds)))
+
+        # ROC Curve
+        y_probs = self.model_.predict_proba(X_test)[:, 1]
+        fpr, tpr, thresholds = roc_curve(y_test, y_probs)
+        auc = roc_auc_score(y_test, y_probs)
+
+        self.logger.info('ROC AUC for the test set: {0}'.format(auc))
+        plt.plot(fpr, tpr, lw=2, color='r', label='AUC: {:.2}'.format(auc))
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.plot([0, 1], [0, 1], linestyle='--')
+        plt.legend()
+
+        ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+        plt.savefig('{0}/model/saved_models/roc_{1}.png'.format(WORKING_DIR, ts))
 
     def save(self, filebase):
 
