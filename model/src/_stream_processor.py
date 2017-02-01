@@ -5,7 +5,7 @@ import json
 import re
 import numpy as np
 
-from lib.utils.lw import get_logger
+from lib.utils.lw import get_logger, get_root_logger, get_header
 from lib.utils.util import get_path
 
 # utility functions for transformations on streamed tweets
@@ -97,6 +97,9 @@ class TweetProcessor(object):
 
         self.logger = get_logger(__name__)
         self.loc = get_path(__file__) + '/{0}'
+
+        self.logger.info('Found a tweet!\n{0}'.format(tweet['text']))
+
         self.model = self._load_model()
         self.api = tweepy.API(AuthHandler().auth)
         self.tweet = tweet
@@ -151,7 +154,10 @@ class TweetProcessor(object):
 
     def predict(self):
 
-        return self.model.gs_.predict_proba(self.tweet_df)[0][1]
+        prob = self.model.gs_.predict_proba(self.tweet_df)[0][1]
+        self.logger.info('Probability this was a POTUS tweet is {:.2%}'.format(prob))
+
+        return prob
 
     def retweet(self):
 
@@ -167,6 +173,9 @@ class TweetProcessor(object):
 
 if __name__ == '__main__':
 
+    # for testing
+    lg = get_root_logger()
+    get_header(lg, 'Testing Stream Processir')
     auth = AuthHandler()
 
     api = tweepy.API(auth_handler=auth.auth)
