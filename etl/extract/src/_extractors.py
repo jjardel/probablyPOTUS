@@ -1,73 +1,9 @@
-from bs4 import BeautifulSoup
-from requests import get
-
 from lib.utils.util import get_path
 from lib.utils.lw import get_logger, get_root_logger
-from zipfile import ZipFile
-from io import BytesIO
 from pandas import DataFrame
 from pandas.io.json import json_normalize
 
-import tweepy, json, re, os
-
-
-class EventExtractor(object):
-
-    def __init__(self, url='http://phoenixdata.org/data', base='https://s3.amazonaws.com/oeda/data/current/'):
-        """
-        Download all Event files from Project Phoenix
-
-        :param url: Link to Phoenix data
-        :param base: Pattern to search for links
-        """
-
-        self.url = url
-        self.base = base
-        self.file_links = []
-
-        self.data_path = get_path(__file__) + '/../../data/{0}'
-        self.logger = get_logger(__name__)
-
-    def _get_files(self):
-        """
-        Get links to files on S3 from Phoenix home page
-
-        :returns list of hyperlinks to data file locations on S3
-        """
-
-        file_links = []
-
-        page = get(self.url)
-        soup = BeautifulSoup(page.content, 'html.parser')
-
-        links = soup.find_all(href=re.compile(self.base))
-        for link in links:
-            file_links.append(link.contents[0])
-
-        return file_links
-
-    def extract(self):
-        """
-        Downloads files
-
-        """
-
-        files = self._get_files()
-
-        for link in files:
-            file_name = link.replace(self.base, '').replace('.zip', '')
-            file_path = self.data_path.format(file_name)
-
-            # skip file if it's been downloaded already
-            if os.path.exists(file_path):
-                continue
-
-            self.logger.info('Downloading {0}'.format(file_name))
-            r = get(link)
-
-            # unzip file to data directory
-            z = ZipFile(BytesIO(r.content))
-            z.extractall(self.data_path.format('.'))
+import tweepy, json
 
 
 class TweetExtractor(object):
@@ -138,7 +74,6 @@ class TweetExtractor(object):
             page += 1
             cursor += batch_size
 
-
         fields = self._get_extraction_fields()
         df = DataFrame(columns=fields)
 
@@ -157,8 +92,6 @@ if __name__ == '__main__':
 
     lg = get_root_logger()
 
-    #ex = EventExtractor()
-    #ex.extract()
     twex = TweetExtractor()
     twex.extract()
     print('test')

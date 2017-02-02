@@ -1,1 +1,1 @@
-from ._extractors import TweetExtractor, EventExtractor
+from ._extractors import TweetExtractor
