@@ -164,8 +164,13 @@ class TweetProcessor(object):
         # retweet with boilerplate
         prob = self.predict()
 
-        text = 'There is a {:.0%} chance that this tweet was written by POTUS https://twitter.com/realDonaldTrump/status/{}'.\
-            format(prob, self.tweet_df.id_str.loc[0])
+        if .8 <= prob < .9:
+            word = 'an'
+        else:
+            word = 'a'
+
+        text = 'There is {} {:.0%} chance that this tweet was written by POTUS https://twitter.com/realDonaldTrump/status/{}'.\
+            format(word, prob, self.tweet_df.id_str.loc[0])
 
         self.api.update_status(text)
         self.logger.info('Retweeted tweet ID {0}'.format(self.tweet_df.id_str.loc[0]))
