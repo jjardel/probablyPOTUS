@@ -79,7 +79,7 @@ class Listener(tweepy.StreamListener):
             processor.transform()
             prob_potus = processor.predict()
 
-            if prob_potus >= 0.8:
+            if prob_potus >= 0.7:
                 processor.retweet()
         else:
             return True
