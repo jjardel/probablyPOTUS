@@ -1,3 +1,5 @@
+from numpy import logspace
+
 from model.src import RandomForestModel, NaiveBayesModel
 
 from lib.utils.lw import get_root_logger, get_header
@@ -11,7 +13,12 @@ def main(table, schema):
 
     loc = get_path(__file__) + '/{0}'
 
-    model = RandomForestModel(table, schema)
+    params = {
+        'features__text_processing__vect__ngram_range': [(1, 1), (1, 2), (1, 3)],
+        'clf__n_estimators': [int(x) for x in logspace(1, 3, num=10)]
+    }
+
+    model = RandomForestModel(table, schema, **params)
     model.train()
     model.evaluate()
     model.save(loc.format('saved_models'))

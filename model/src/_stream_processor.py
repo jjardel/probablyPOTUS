@@ -179,7 +179,7 @@ if __name__ == '__main__':
     auth = AuthHandler()
 
     api = tweepy.API(auth_handler=auth.auth)
-    tweet = api.get_status('741286391200505857')
+    tweet = api.get_status('826990079738540033')
 
     p = TweetProcessor(
         tweet=tweet._json
